@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Vigenère Cipher</string>
+    <string name="radioText">Alphabet</string>
+    <string name="simpleText">Simple</string>
+    <string name="standardText">Standard</string>
+    <string name="asciiText">ASCII</string>
+    <string name="messageText">Message</string>
+    <string name="keyText">Key</string>
+    <string name="decryptText">Decrypt</string>
+    <string name="encryptText">Encrypt</string>
+    <string name="keyGenText">Key Gen</string>
+
+</resources>
