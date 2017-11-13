@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
 import android.view.View;
+import java.util.Random;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     public static final ArrayList wrap = new ArrayList();
     public static final ArrayList total = new ArrayList();
     public static final ArrayList fin = new ArrayList();
+    public static final ArrayList key_array = new ArrayList();
+    public static final Random rand = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,8 +149,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 //Sum wrap values with message values
-                for(int i=0; i<message_no.size(); i++){
-                    total.add(Integer.parseInt(String.valueOf(message_no.get(i)))-Integer.parseInt(String.valueOf(wrap.get(i))));
+                    for(int i=0; i<message_no.size(); i++){
+                        total.add(Integer.parseInt(String.valueOf(message_no.get(i)))-Integer.parseInt(String.valueOf(wrap.get(i))));
                 }
                 //If total < 0, make positive
                 for(int i=0; i<total.size(); i++){
@@ -173,10 +176,31 @@ public class MainActivity extends AppCompatActivity {
         //Key Gen BUTTON
         key_gen.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
+                key_array.clear();
+
+                if(radioGroup.getCheckedRadioButtonId()==-1){
+                    Toast.makeText(getApplicationContext(), "Method not selected", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if(message.getText().toString().matches("")){
                     Toast.makeText(getApplicationContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                for (int i = 0; i < message.getText().toString().length(); i++) {
+                    int  j = rand.nextInt(config.size());
+                    key_array.add(config.get(j));
+                }
+
+                //Array to string
+                StringBuilder strBuilder = new StringBuilder();
+                for (int i = 0; i < key_array.size(); i++) {
+                    strBuilder.append(key_array.get(i));
+                }
+                String newString = strBuilder.toString();
+                System.out.println(newString);
+                key.setText(newString);
             }
         });
     }
