@@ -5,13 +5,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="16dp"
     tools:context="today.duma.vigenere.MainActivity">
 
     <RadioGroup
         android:id="@+id/radioGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_centerHorizontal="true"
         android:orientation="horizontal">
 
@@ -54,6 +56,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/radioGroup"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:paddingTop="16dp"
         android:text="@string/messageText" />
 
@@ -62,6 +66,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/messageLabel"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:scrollHorizontally="false"
         android:inputType="textMultiLine"
         android:maxLines="5" />
@@ -71,6 +77,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/message"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:paddingTop="16dp"
         android:text="@string/keyText" />
 
@@ -79,21 +87,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/keyLabel"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:scrollHorizontally="false"
         android:inputType="textMultiLine"
         android:maxLines="5" />
 
     <Button
         android:id="@+id/key_gen"
+        android:onClick="key_gen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@id/key"
+        android:layout_marginRight="16dp"
         android:text="@string/keyGenText" />
 
     <Button
         android:id="@+id/decrypt"
+        android:onClick="decrypt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@id/key_gen"
@@ -105,6 +118,7 @@
 
     <Button
         android:id="@+id/encrypt"
+        android:onClick="encrypt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@id/decrypt"
@@ -113,5 +127,19 @@
         android:layout_marginEnd="2dp"
         android:layout_marginRight="2dp"
         android:text="@string/encryptText"	/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:onClick="fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        app:backgroundTint="@color/colorPrimary"
+        app:srcCompat="@drawable/ic_add_white_24dp" />
 
 </RelativeLayout>
