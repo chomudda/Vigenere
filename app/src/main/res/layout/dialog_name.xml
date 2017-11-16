@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="21dp"
+        android:layout_marginLeft="21dp"
+        android:layout_marginRight="21dp"
+
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:text="@string/dialogTitle" />
+
+    <TextView
+        android:id="@+id/dialog_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dialog_title"
+
+        android:layout_marginTop="21dp"
+        android:layout_marginLeft="21dp"
+        android:layout_marginRight="21dp"
+
+        android:textSize="16sp"
+        android:text="@string/dialogHint" />
+
+    <EditText
+        android:id="@+id/dialog_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dialog_hint"
+
+        android:layout_marginTop="21dp"
+        android:layout_marginLeft="21dp"
+        android:layout_marginRight="21dp"
+
+        android:layout_centerHorizontal="true"
+        android:ems="10"
+        android:inputType="textShortMessage" />
+
+    <Button
+        android:id="@+id/dialog_cancel"
+        style="?attr/buttonBarNegativeButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/dialog_text"
+        android:layout_toLeftOf="@+id/dialog_ok"
+        android:layout_toStartOf="@+id/dialog_ok"
+        android:onClick="cancel"
+        android:textColor="#000000"
+        android:text="CANCEL" />
+
+    <Button
+        android:id="@+id/dialog_ok"
+        style="?attr/buttonBarPositiveButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/dialog_cancel"
+        android:layout_alignBottom="@+id/dialog_cancel"
+        android:layout_alignEnd="@+id/dialog_text"
+        android:layout_alignRight="@+id/dialog_text"
+        android:text="OK" />
+</RelativeLayout>
