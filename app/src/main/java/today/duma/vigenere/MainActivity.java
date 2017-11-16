@@ -2,11 +2,13 @@ package today.duma.vigenere;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.EditText;
@@ -265,39 +267,73 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void fab (View view){
-        String state;
+        final String state;
         state = Environment.getExternalStorageState();
 
-        if(Environment.MEDIA_MOUNTED.equals(state)){
-            File root = Environment.getExternalStorageDirectory();
-            File path = new File(root.getAbsolutePath()+"/vigenere");
-
-            if(!path.exists()){
-                path.mkdir();
-            }
-
-            File file = new File(path,"keys.txt");
-            String Message = key.getText().toString()+"\n";
-
-            try{
-                FileOutputStream fileOutputStream = new FileOutputStream(file, true);
-                fileOutputStream.write(Message.getBytes());
-                fileOutputStream.close();
-                key.setText("");
-                Toast.makeText(getApplicationContext(),"Key Saved!",Toast.LENGTH_LONG).show();
-            }
-
-            catch(FileNotFoundException e){
-                e.printStackTrace();
-            }
-
-            catch(IOException e){
-                e.printStackTrace();
-            }
-
-        }else{
-            Toast.makeText(getApplicationContext(),"Path not found!",Toast.LENGTH_LONG).show();
+        if(key.getText().toString().matches("")){
+            Toast.makeText(getApplicationContext(), "Please enter a key", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.dialog_name, null);
+        final EditText mName = (EditText) mView.findViewById(R.id.dialog_text);
+        Button mOk = (Button) mView.findViewById(R.id.dialog_ok);
+        Button mCancel = (Button) mView.findViewById(R.id.dialog_cancel);
+
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.show();
+
+        mOk.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                if(mName.getText().toString().isEmpty()){
+                    Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
+                }
+                else{
+                    if(Environment.MEDIA_MOUNTED.equals(state)){
+                        File root = Environment.getExternalStorageDirectory();
+                        File path = new File(root.getAbsolutePath()+"/vigenere");
+
+                        if(!path.exists()){
+                            path.mkdir();
+                        }
+
+                        File file = new File(path,"keys.txt");
+                        String Message = mName.getText().toString()+": "+key.getText().toString()+"\n";
+
+                        try{
+                            FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+                            fileOutputStream.write(Message.getBytes());
+                            fileOutputStream.close();
+                            key.setText("");
+                            Toast.makeText(getApplicationContext(),"Key saved",Toast.LENGTH_LONG).show();
+                        }
+
+                        catch(FileNotFoundException e){
+                            e.printStackTrace();
+                        }
+
+                        catch(IOException e){
+                            e.printStackTrace();
+                        }
+
+                    }else{
+                        Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
+                    }
+
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        mCancel.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                dialog.dismiss();
+            }
+        });
     }
 
     /*public void readMessage (View view){

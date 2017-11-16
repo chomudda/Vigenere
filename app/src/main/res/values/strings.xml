@@ -9,5 +9,12 @@
     <string name="decryptText">Decrypt</string>
     <string name="encryptText">Encrypt</string>
     <string name="keyGenText">Key Gen</string>
+    <string name="dialogTitle">Key Name</string>
+    <string name="dialogHint">Please enter a name for the key</string>
+    <string name="marginTop">20dp</string>
+    <string name="marginBottom">16dp</string>
+    <string name="marginLeft">20dp</string>
+    <string name="marginRight">20dp</string>
+    <string name="marginGap">16dp</string>
 
 </resources>
