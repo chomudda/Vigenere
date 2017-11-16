@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -24,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -269,8 +272,10 @@ public class MainActivity extends AppCompatActivity {
     public void fab (View view){
         final String state;
         state = Environment.getExternalStorageState();
+        final FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.menu);
 
         if(key.getText().toString().matches("")){
+            fab.close(true);
             Toast.makeText(getApplicationContext(), "Please enter a key", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -322,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
                     }
-
+                    fab.close(true);
                     dialog.dismiss();
                 }
             }
@@ -331,9 +336,48 @@ public class MainActivity extends AppCompatActivity {
         mCancel.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
+                fab.close(true);
                 dialog.dismiss();
             }
         });
+    }
+
+    public void clearData (View view){
+        final String state;
+        state = Environment.getExternalStorageState();
+        final FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.menu);
+
+        if(Environment.MEDIA_MOUNTED.equals(state)){
+            File root = Environment.getExternalStorageDirectory();
+            File path = new File(root.getAbsolutePath()+"/vigenere");
+
+            if(!path.exists()){
+                path.mkdir();
+            }
+
+            File file = new File(path,"keys.txt");
+            String Message = "";
+
+            try{
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                fileOutputStream.write(Message.getBytes());
+                fileOutputStream.close();
+                key.setText("");
+                Toast.makeText(getApplicationContext(),"Keys deleted",Toast.LENGTH_LONG).show();
+            }
+
+            catch(FileNotFoundException e){
+                e.printStackTrace();
+            }
+
+            catch(IOException e){
+                e.printStackTrace();
+            }
+
+        }else{
+            Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
+        }
+        fab.close(true);
     }
 
     /*public void readMessage (View view){
