@@ -8,7 +8,6 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -24,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
 import java.util.Random;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         key = (EditText)findViewById(R.id.key);
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         display = (TextView) findViewById(R.id.display);
+        //
         display.setVisibility(View.GONE);
     }
 
@@ -244,6 +245,14 @@ public class MainActivity extends AppCompatActivity {
     public void key_gen(View view){
         key_array.clear();
 
+        try {
+            AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKey();
+            display.setText(keys.toString());
+            System.out.println(keys);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+
         if(radioGroup.getCheckedRadioButtonId()==-1){
             Toast.makeText(getApplicationContext(), "Method not selected", Toast.LENGTH_SHORT).show();
             return;
@@ -306,11 +315,12 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         File file = new File(path,"keys.txt");
-                        String Message = mName.getText().toString()+": "+key.getText().toString()+"\n";
+                        String keyName = "{"+mName.getText().toString()+"}";
+                        String keyString = keyName+key.getText().toString()+"\n";
 
                         try{
                             FileOutputStream fileOutputStream = new FileOutputStream(file, true);
-                            fileOutputStream.write(Message.getBytes());
+                            fileOutputStream.write(keyString.getBytes());
                             fileOutputStream.close();
                             key.setText("");
                             Toast.makeText(getApplicationContext(),"Key saved",Toast.LENGTH_LONG).show();
@@ -380,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
         fab.close(true);
     }
 
-    /*public void readMessage (View view){
+    public void loadKey (View view){
         File root = Environment.getExternalStorageDirectory();
         File path = new File(root.getAbsolutePath()+"/vigenere");
         File file = new File(path,"keys.txt");
@@ -407,5 +417,5 @@ public class MainActivity extends AppCompatActivity {
         catch(IOException e){
             e.printStackTrace();
         }
-    }*/
+    }
 }

@@ -135,10 +135,11 @@
     <TextView
         android:id="@+id/display"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/encrypt"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
         android:paddingTop="16dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"/>
@@ -201,6 +202,20 @@
             fab:fab_colorRipple="@color/colorPrimaryDark"
             fab:fab_size="mini"
             fab:fab_label="Clear Data" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/load_key"
+            android:onClick="loadKey"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_search_white_24dp"
+            fab:fab_colorNormal="@color/colorPrimary"
+            fab:fab_colorPressed="@color/colorPrimaryDark"
+            fab:fab_colorRipple="@color/colorPrimaryDark"
+            fab:fab_size="mini"
+            fab:fab_label="Load Keys" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/save_key"
