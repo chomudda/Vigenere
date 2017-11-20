@@ -3,15 +3,21 @@ package today.duma.vigenere;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.EditText;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
@@ -24,12 +30,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
     public EditText message;
     public EditText key;
     public RadioGroup radioGroup;
-    public TextView display;
+    public ListView list;
+    List<Map<String, String>> data;
 
     //Global arrays
     public ArrayList config = new ArrayList();
@@ -81,9 +93,8 @@ public class MainActivity extends AppCompatActivity {
         message = (EditText)findViewById(R.id.message);
         key = (EditText)findViewById(R.id.key);
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        display = (TextView) findViewById(R.id.display);
-        //
-        display.setVisibility(View.GONE);
+        list = (ListView) findViewById(R.id.list);
+        data = new ArrayList<Map<String, String>>();
     }
 
     //ENCRYPT
@@ -245,13 +256,13 @@ public class MainActivity extends AppCompatActivity {
     public void key_gen(View view){
         key_array.clear();
 
-        try {
+        /*try {
             AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKey();
             display.setText(keys.toString());
             System.out.println(keys);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
-        }
+        }*/
 
         if(radioGroup.getCheckedRadioButtonId()==-1){
             Toast.makeText(getApplicationContext(), "Method not selected", Toast.LENGTH_SHORT).show();
@@ -316,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
 
                         File file = new File(path,"keys.txt");
                         String keyName = "{"+mName.getText().toString()+"}";
-                        String keyString = keyName+key.getText().toString()+"\n";
+                        String keyString = keyName+"[%"+key.getText().toString()+"%]"+"\n";
 
                         try{
                             FileOutputStream fileOutputStream = new FileOutputStream(file, true);
@@ -394,6 +405,8 @@ public class MainActivity extends AppCompatActivity {
         File root = Environment.getExternalStorageDirectory();
         File path = new File(root.getAbsolutePath()+"/vigenere");
         File file = new File(path,"keys.txt");
+        data.clear();
+        list.setAdapter(null);
 
         String Message;
 
@@ -404,10 +417,37 @@ public class MainActivity extends AppCompatActivity {
             StringBuffer stringBuffer = new StringBuffer();
 
             while((Message=bufferedReader.readLine())!=null){
+                Pattern namePattern = Pattern.compile("\\{(.*?)\\}");
+                Matcher nameMatch = namePattern.matcher(Message);
+                Pattern keyPattern = Pattern.compile("\\[\\%(.*?)\\%\\]");
+                Matcher keyMatch = keyPattern.matcher(Message);
+
+                while(nameMatch.find() && keyMatch.find()){
+                    Map<String, String> datum = new HashMap<String, String>(2);
+                    datum.put("name", nameMatch.group(1));
+                    datum.put("key", keyMatch.group(1));
+                    data.add(datum);
+                    System.out.println("Name: " + nameMatch.group(1));
+                    System.out.println("Key: " + keyMatch.group(1));
+                }
                 stringBuffer.append(Message + "\n");
             }
-            display.setText(stringBuffer.toString());
-            display.setVisibility(View.VISIBLE);
+
+            SimpleAdapter adapter = new SimpleAdapter(
+                    MainActivity.this,
+                    data,
+                    android.R.layout.simple_list_item_2,
+                    new String[] {
+                            "name",
+                            "key"
+                    },
+                    new int[] {
+                            android.R.id.text1,
+                            android.R.id.text2
+                    }
+            );
+            list.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
         }
 
         catch(FileNotFoundException e){
