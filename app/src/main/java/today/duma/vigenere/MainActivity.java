@@ -18,7 +18,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.EditText;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     public ArrayList fin = new ArrayList();
     public  ArrayList key_array = new ArrayList();
     public Random rand = new Random();
+    public String SecretKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +95,68 @@ public class MainActivity extends AppCompatActivity {
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         list = (ListView) findViewById(R.id.list);
         data = new ArrayList<Map<String, String>>();
+
+        String state;
+        state = Environment.getExternalStorageState();
+        String Message;
+
+        //Generate keystore file
+        if(Environment.MEDIA_MOUNTED.equals(state)){
+            File root = Environment.getExternalStorageDirectory();
+            File path = new File(root.getAbsolutePath()+"/vigenere/data");
+            File file = new File(path,"keystore.data");
+
+            if(!path.exists()){
+                path.mkdir();
+            }
+
+            if(!file.exists()){
+                try{
+                    AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKey();
+                    SecretKey = keys.toString();
+                    FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+                    fileOutputStream.write(keys.toString().getBytes());
+                    fileOutputStream.close();
+                    Toast.makeText(getApplicationContext(),"Secret key created",Toast.LENGTH_LONG).show();
+                }
+
+                catch(FileNotFoundException e){
+                    e.printStackTrace();
+                }
+
+                catch(IOException e){
+                    e.printStackTrace();
+                }
+                catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+            else{
+                try{
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                    StringBuffer stringBuffer = new StringBuffer();
+
+                    //String buffer loop to get lines in file
+                    while((Message=bufferedReader.readLine())!=null){
+                        stringBuffer.append(Message + "\n");
+                    }
+                    SecretKey = stringBuffer.toString();
+                }
+
+                catch(FileNotFoundException e){
+                    e.printStackTrace();
+                }
+
+                catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+
+        }else{
+            Toast.makeText(getApplicationContext(),"Write access denied",Toast.LENGTH_LONG).show();
+        }
     }
 
     //ENCRYPT
@@ -155,7 +217,6 @@ public class MainActivity extends AppCompatActivity {
             strBuilder.append(fin.get(i));
         }
         String newString = strBuilder.toString();
-        System.out.println(newString);
         message.setText(newString);
     }
 
@@ -217,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
             strBuilder.append(fin.get(i));
         }
         String newString = strBuilder.toString();
-        System.out.println(newString);
         message.setText(newString);
     }
 
@@ -256,14 +316,6 @@ public class MainActivity extends AppCompatActivity {
     public void key_gen(View view){
         key_array.clear();
 
-        /*try {
-            AesCbcWithIntegrity.SecretKeys keys = AesCbcWithIntegrity.generateKey();
-            display.setText(keys.toString());
-            System.out.println(keys);
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        }*/
-
         if(radioGroup.getCheckedRadioButtonId()==-1){
             Toast.makeText(getApplicationContext(), "Method not selected", Toast.LENGTH_SHORT).show();
             return;
@@ -285,7 +337,6 @@ public class MainActivity extends AppCompatActivity {
             strBuilder.append(key_array.get(i));
         }
         String newString = strBuilder.toString();
-        System.out.println(newString);
         key.setText(newString);
     }
 
@@ -310,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
 
+        //Dialog popup (OK)
         mOk.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -317,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
                 }
                 else{
+                    //Write to directory
                     if(Environment.MEDIA_MOUNTED.equals(state)){
                         File root = Environment.getExternalStorageDirectory();
                         File path = new File(root.getAbsolutePath()+"/vigenere");
@@ -354,6 +407,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Dialog popup (CANCEL)
         mCancel.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -416,23 +470,25 @@ public class MainActivity extends AppCompatActivity {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             StringBuffer stringBuffer = new StringBuffer();
 
+            //String buffer loop to get lines in file
             while((Message=bufferedReader.readLine())!=null){
                 Pattern namePattern = Pattern.compile("\\{(.*?)\\}");
                 Matcher nameMatch = namePattern.matcher(Message);
                 Pattern keyPattern = Pattern.compile("\\[\\%(.*?)\\%\\]");
                 Matcher keyMatch = keyPattern.matcher(Message);
 
+                //RegEx for key names and key
                 while(nameMatch.find() && keyMatch.find()){
                     Map<String, String> datum = new HashMap<String, String>(2);
                     datum.put("name", nameMatch.group(1));
                     datum.put("key", keyMatch.group(1));
                     data.add(datum);
-                    System.out.println("Name: " + nameMatch.group(1));
-                    System.out.println("Key: " + keyMatch.group(1));
+                    //System.out.println("Name: " + nameMatch.group(1));
+                    //System.out.println("Key: " + keyMatch.group(1));
                 }
                 stringBuffer.append(Message + "\n");
             }
-
+            //Add the datum to ListView
             SimpleAdapter adapter = new SimpleAdapter(
                     MainActivity.this,
                     data,
@@ -448,6 +504,23 @@ public class MainActivity extends AppCompatActivity {
             );
             list.setAdapter(adapter);
             adapter.notifyDataSetChanged();
+
+            //Add to clipboard on long press
+            final ClipData[] myClip = new ClipData[1];
+            final ClipboardManager clipboard = (ClipboardManager)
+                    getSystemService(Context.CLIPBOARD_SERVICE);
+            list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener () {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view,int position, long id) {
+                    Map<String, String> map = data.get(position);
+                    //Map data set for "key"
+                    String link = map.get("key");
+                    myClip[0] = ClipData.newPlainText("text", link);
+                    clipboard.setPrimaryClip( myClip[0] );
+                    Toast.makeText(getApplicationContext(),"Copied to clipboard",Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
         }
 
         catch(FileNotFoundException e){
