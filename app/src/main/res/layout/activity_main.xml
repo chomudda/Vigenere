@@ -132,7 +132,7 @@
         android:layout_marginRight="2dp"
         android:text="@string/encryptText"	/>
 
-    <ListView
+    <com.baoyz.swipemenulistview.SwipeMenuListView
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -182,8 +182,8 @@
         fab:menu_labels_position="left"
         fab:menu_openDirection="up"
         fab:menu_backgroundColor="#CC333333"
-        fab:menu_fab_show_animation="@anim/show_from_bottom"
-        fab:menu_fab_hide_animation="@anim/hide_to_bottom">
+        fab:menu_fab_show_animation="@anim/fab_scale_up"
+        fab:menu_fab_hide_animation="@anim/fab_scale_down">
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/clear_data"
@@ -211,7 +211,21 @@
             fab:fab_colorPressed="@color/colorPrimaryDark"
             fab:fab_colorRipple="@color/colorPrimaryDark"
             fab:fab_size="mini"
-            fab:fab_label="Load Keys" />
+            fab:fab_label="Load from file" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/add_key"
+            android:onClick="addKey"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_list_white_24dp"
+            fab:fab_colorNormal="@color/colorPrimary"
+            fab:fab_colorPressed="@color/colorPrimaryDark"
+            fab:fab_colorRipple="@color/colorPrimaryDark"
+            fab:fab_size="mini"
+            fab:fab_label="Add to list" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/save_key"
@@ -220,12 +234,12 @@
             android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_white_24dp"
+            android:src="@drawable/ic_save_white_24dp"
             fab:fab_colorNormal="@color/colorPrimary"
             fab:fab_colorPressed="@color/colorPrimaryDark"
             fab:fab_colorRipple="@color/colorPrimaryDark"
             fab:fab_size="mini"
-            fab:fab_label="Save Key" />
+            fab:fab_label="Save to file" />
 
     </com.github.clans.fab.FloatingActionMenu>
 

@@ -1,16 +1,25 @@
 package today.duma.vigenere;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -33,6 +42,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -40,6 +54,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static today.duma.vigenere.R.drawable.ic_add_black_24dp;
+import static today.duma.vigenere.R.drawable.ic_add_white_24dp;
+import static today.duma.vigenere.R.drawable.ic_delete_black_24dp;
+import static today.duma.vigenere.R.drawable.ic_delete_white_24dp;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     public EditText message;
     public EditText key;
     public RadioGroup radioGroup;
-    public ListView list;
+    public SwipeMenuListView list;
     List<Map<String, String>> data;
 
     //Global arrays
@@ -86,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
@@ -93,8 +113,105 @@ public class MainActivity extends AppCompatActivity {
         message = (EditText)findViewById(R.id.message);
         key = (EditText)findViewById(R.id.key);
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        list = (ListView) findViewById(R.id.list);
+        list = (SwipeMenuListView) findViewById(R.id.list);
         data = new ArrayList<Map<String, String>>();
+
+        //Add to clipboard on long press
+        final ClipData[] myClip = new ClipData[1];
+        final ClipboardManager clipboard = (ClipboardManager)
+                getSystemService(Context.CLIPBOARD_SERVICE);
+        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener () {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view,int position, long id) {
+                Map<String, String> map = data.get(position);
+                //Map data set for "key"
+                String link = map.get("key");
+                myClip[0] = ClipData.newPlainText("text", link);
+                clipboard.setPrimaryClip( myClip[0] );
+                Toast.makeText(getApplicationContext(),"Copied to clipboard",Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+
+        //Hide action button on scroll
+        list.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int i) {
+                //System.out.println(i);
+            }
+
+            @Override
+            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+                final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+                if(i == 0) {
+                    fam.showMenuButton(true);
+                }
+                if(i > 0) {
+                    fam.hideMenuButton(true);
+                }
+            }
+        });
+
+        //Swipe menu
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+            @Override
+            public void create(SwipeMenu menu) {
+                //Create delete item
+                SwipeMenuItem deleteItem = new SwipeMenuItem(
+                        getApplicationContext());
+
+                //Add menu
+                menu.addMenuItem(deleteItem);
+
+                //Set item width
+                deleteItem.setWidth(200);
+
+                //Set delete icon
+                deleteItem.setIcon(ic_delete_white_24dp);
+
+                //Set item background
+                deleteItem.setBackground(new ColorDrawable(Color.rgb(
+                        255,
+                        105,
+                        97
+                )));
+            }
+        };
+
+        list.setMenuCreator(creator);
+
+        list.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                // false : close the menu; true : not close the menu
+                Map<String, String> datum = new HashMap<String, String>(2);
+                System.out.println(datum.toString());
+                Map<String, String> map = data.get(position);
+                SimpleAdapter adapter = new SimpleAdapter(
+                        MainActivity.this,
+                        data,
+                        android.R.layout.simple_list_item_2,
+                        new String[] {
+                                "name",
+                                "key"
+                        },
+                        new int[] {
+                                android.R.id.text1,
+                                android.R.id.text2
+                        }
+                );
+                int id = (int) adapter.getItemId(position);
+                datum.remove(id);
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(getApplicationContext(),"Deleted",Toast.LENGTH_LONG).show();
+                return false;
+            }
+        });
+
+        //Close soft keyboard on create
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        //this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         String state;
         state = Environment.getExternalStorageState();
@@ -343,16 +460,16 @@ public class MainActivity extends AppCompatActivity {
     public void fab (View view){
         final String state;
         state = Environment.getExternalStorageState();
-        final FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.menu);
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
         if(key.getText().toString().matches("")){
-            fab.close(true);
+            fam.close(true);
             Toast.makeText(getApplicationContext(), "Please enter a key", Toast.LENGTH_SHORT).show();
             return;
         }
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        View mView = getLayoutInflater().inflate(R.layout.dialog_name, null);
+        final View mView = getLayoutInflater().inflate(R.layout.dialog_name, null);
         final EditText mName = (EditText) mView.findViewById(R.id.dialog_text);
         Button mOk = (Button) mView.findViewById(R.id.dialog_ok);
         Button mCancel = (Button) mView.findViewById(R.id.dialog_cancel);
@@ -401,7 +518,7 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
                     }
-                    fab.close(true);
+                    fam.close(true);
                     dialog.dismiss();
                 }
             }
@@ -411,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
         mCancel.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                fab.close(true);
+                fam.close(true);
                 dialog.dismiss();
             }
         });
@@ -420,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
     public void clearData (View view){
         final String state;
         state = Environment.getExternalStorageState();
-        final FloatingActionMenu fab = (FloatingActionMenu) findViewById(R.id.menu);
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
         if(Environment.MEDIA_MOUNTED.equals(state)){
             File root = Environment.getExternalStorageDirectory();
@@ -452,15 +569,68 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
         }
-        fab.close(true);
+        fam.close(true);
+    }
+
+    public void addKey(View view){
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+
+        if(key.getText().toString().matches("")){
+            fam.close(true);
+            Toast.makeText(getApplicationContext(), "Please enter a key", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View mView = getLayoutInflater().inflate(R.layout.dialog_name, null);
+        final EditText mName = (EditText) mView.findViewById(R.id.dialog_text);
+        Button mOk = (Button) mView.findViewById(R.id.dialog_ok);
+        Button mCancel = (Button) mView.findViewById(R.id.dialog_cancel);
+
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.show();
+
+        //Dialog popup (OK)
+        mOk.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                if(mName.getText().toString().isEmpty()){
+                    Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
+                }
+                Map<String, String> datum = new HashMap<String, String>(2);
+                datum.put("name", mName.getText().toString());
+                datum.put("key", key.getText().toString());
+                data.add(datum);
+                SimpleAdapter adapter = new SimpleAdapter(MainActivity.this, data, android.R.layout.simple_list_item_2, new String[] {"name", "key"}, new int[] {android.R.id.text1,
+                        android.R.id.text2});
+                list.setAdapter(adapter);
+                adapter.notifyDataSetChanged();
+
+
+                fam.close(true);
+                dialog.dismiss();
+            }
+        });
+
+        //Dialog popup (CANCEL)
+        mCancel.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                fam.close(true);
+                dialog.dismiss();
+            }
+        });
+
     }
 
     public void loadKey (View view){
+        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
         File root = Environment.getExternalStorageDirectory();
         File path = new File(root.getAbsolutePath()+"/vigenere");
         File file = new File(path,"keys.txt");
         data.clear();
-        list.setAdapter(null);
+
 
         String Message;
 
@@ -504,23 +674,7 @@ public class MainActivity extends AppCompatActivity {
             );
             list.setAdapter(adapter);
             adapter.notifyDataSetChanged();
-
-            //Add to clipboard on long press
-            final ClipData[] myClip = new ClipData[1];
-            final ClipboardManager clipboard = (ClipboardManager)
-                    getSystemService(Context.CLIPBOARD_SERVICE);
-            list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener () {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view,int position, long id) {
-                    Map<String, String> map = data.get(position);
-                    //Map data set for "key"
-                    String link = map.get("key");
-                    myClip[0] = ClipData.newPlainText("text", link);
-                    clipboard.setPrimaryClip( myClip[0] );
-                    Toast.makeText(getApplicationContext(),"Copied to clipboard",Toast.LENGTH_LONG).show();
-                    return true;
-                }
-            });
+            Toast.makeText(getApplicationContext(),"Keys loaded",Toast.LENGTH_LONG).show();
         }
 
         catch(FileNotFoundException e){
@@ -530,5 +684,6 @@ public class MainActivity extends AppCompatActivity {
         catch(IOException e){
             e.printStackTrace();
         }
+        fam.close(true);
     }
 }
