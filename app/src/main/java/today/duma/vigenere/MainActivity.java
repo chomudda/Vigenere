@@ -17,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
@@ -55,6 +56,7 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static android.util.Log.d;
 import static today.duma.vigenere.R.drawable.ic_add_black_24dp;
 import static today.duma.vigenere.R.drawable.ic_add_white_24dp;
 import static today.duma.vigenere.R.drawable.ic_delete_black_24dp;
@@ -102,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     public  ArrayList key_array = new ArrayList();
     public Random rand = new Random();
     public String SecretKey;
+    SimpleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,14 +183,14 @@ public class MainActivity extends AppCompatActivity {
 
         list.setMenuCreator(creator);
 
+        //Swipe delete
         list.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 // false : close the menu; true : not close the menu
-                Map<String, String> datum = new HashMap<String, String>(2);
-                System.out.println(datum.toString());
                 Map<String, String> map = data.get(position);
-                SimpleAdapter adapter = new SimpleAdapter(
+                data.remove(map);
+                adapter = new SimpleAdapter(
                         MainActivity.this,
                         data,
                         android.R.layout.simple_list_item_2,
@@ -200,8 +203,7 @@ public class MainActivity extends AppCompatActivity {
                                 android.R.id.text2
                         }
                 );
-                int id = (int) adapter.getItemId(position);
-                datum.remove(id);
+                list.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
 
                 Toast.makeText(getApplicationContext(),"Deleted",Toast.LENGTH_LONG).show();
@@ -462,65 +464,61 @@ public class MainActivity extends AppCompatActivity {
         state = Environment.getExternalStorageState();
         final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
-        if(key.getText().toString().matches("")){
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View mView = getLayoutInflater().inflate(R.layout.dialog_overwrite, null);
+        Button mOk = (Button) mView.findViewById(R.id.overwrite_ok);
+        Button mCancel = (Button) mView.findViewById(R.id.overwrite_cancel);
+
+        if(data.isEmpty ()) {
             fam.close(true);
-            Toast.makeText(getApplicationContext(), "Please enter a key", Toast.LENGTH_SHORT).show();
+            Toast.makeText ( getApplicationContext ( ), "Please add a key to the list", Toast.LENGTH_LONG ).show ( );
             return;
         }
 
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        final View mView = getLayoutInflater().inflate(R.layout.dialog_name, null);
-        final EditText mName = (EditText) mView.findViewById(R.id.dialog_text);
-        Button mOk = (Button) mView.findViewById(R.id.dialog_ok);
-        Button mCancel = (Button) mView.findViewById(R.id.dialog_cancel);
-
         mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-        dialog.show();
+        final AlertDialog overwriteDialog = mBuilder.create();
+        overwriteDialog.show();
 
         //Dialog popup (OK)
         mOk.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                if(mName.getText().toString().isEmpty()){
-                    Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
-                }
-                else{
-                    //Write to directory
-                    if(Environment.MEDIA_MOUNTED.equals(state)){
-                        File root = Environment.getExternalStorageDirectory();
-                        File path = new File(root.getAbsolutePath()+"/vigenere");
+                //Write to directory
+                if(Environment.MEDIA_MOUNTED.equals(state)){
+                    File root = Environment.getExternalStorageDirectory();
+                    File path = new File(root.getAbsolutePath()+"/vigenere");
+                    File file = new File(path,"keys.txt");
 
-                        if(!path.exists()){
-                            path.mkdir();
-                        }
-
-                        File file = new File(path,"keys.txt");
-                        String keyName = "{"+mName.getText().toString()+"}";
-                        String keyString = keyName+"[%"+key.getText().toString()+"%]"+"\n";
-
-                        try{
-                            FileOutputStream fileOutputStream = new FileOutputStream(file, true);
-                            fileOutputStream.write(keyString.getBytes());
-                            fileOutputStream.close();
-                            key.setText("");
-                            Toast.makeText(getApplicationContext(),"Key saved",Toast.LENGTH_LONG).show();
-                        }
-
-                        catch(FileNotFoundException e){
-                            e.printStackTrace();
-                        }
-
-                        catch(IOException e){
-                            e.printStackTrace();
-                        }
-
-                    }else{
-                        Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
+                    if(!path.exists()){
+                        path.mkdir();
                     }
-                    fam.close(true);
-                    dialog.dismiss();
+
+                    if(file.exists()){
+                        file.delete();
+                    }
+
+                    for(int i=0; i<data.size(); i++) {
+                        String keyName = "{"+data.get(i).get("name").toString()+"}";
+                        String keyString = keyName+"[%"+data.get(i).get("key").toString()+"%]"+"\n";
+
+                        try {
+                            FileOutputStream fileOutputStream = new FileOutputStream ( file, true );
+                            fileOutputStream.write ( keyString.getBytes ( ) );
+                            fileOutputStream.close ( );
+                            key.setText ( "" );
+                            Toast.makeText ( getApplicationContext ( ), "Key saved", Toast.LENGTH_LONG ).show ( );
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace ( );
+                        } catch (IOException e) {
+                            e.printStackTrace ( );
+                        }
+                    }
+
+                }else{
+                    Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
                 }
+                overwriteDialog.dismiss();
+                fam.close(true);
             }
         });
 
@@ -529,7 +527,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 fam.close(true);
-                dialog.dismiss();
+                overwriteDialog.dismiss();
             }
         });
     }
@@ -539,37 +537,83 @@ public class MainActivity extends AppCompatActivity {
         state = Environment.getExternalStorageState();
         final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
-        if(Environment.MEDIA_MOUNTED.equals(state)){
-            File root = Environment.getExternalStorageDirectory();
-            File path = new File(root.getAbsolutePath()+"/vigenere");
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        final View mView = getLayoutInflater().inflate(R.layout.dialog_warning, null);
+        Button mOk = (Button) mView.findViewById(R.id.warning_ok);
+        Button mCancel = (Button) mView.findViewById(R.id.warning_cancel);
 
-            if(!path.exists()){
-                path.mkdir();
+        mBuilder.setView(mView);
+        final AlertDialog dialogWarning = mBuilder.create();
+        dialogWarning.show();
+
+        mOk.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                if(!data.isEmpty ()){
+                    for(int i=0; i<data.size(); i++){
+                        Map<String, String> map = data.get(i);
+                        data.remove(map);
+                    }
+                    adapter = new SimpleAdapter(
+                            MainActivity.this,
+                            data,
+                            android.R.layout.simple_list_item_2,
+                            new String[] {
+                                    "name",
+                                    "key"
+                            },
+                            new int[] {
+                                    android.R.id.text1,
+                                    android.R.id.text2
+                            }
+                    );
+                    list.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                }
+
+                if(Environment.MEDIA_MOUNTED.equals(state)){
+                    File root = Environment.getExternalStorageDirectory();
+                    File path = new File(root.getAbsolutePath()+"/vigenere");
+
+                    if(!path.exists()){
+                        path.mkdir();
+                    }
+
+                    File file = new File(path,"keys.txt");
+                    String Message = "";
+
+                    try{
+                        FileOutputStream fileOutputStream = new FileOutputStream(file);
+                        fileOutputStream.write(Message.getBytes());
+                        fileOutputStream.close();
+                        key.setText("");
+                        Toast.makeText(getApplicationContext(),"Keys deleted",Toast.LENGTH_LONG).show();
+                    }
+
+                    catch(FileNotFoundException e){
+                        e.printStackTrace();
+                    }
+
+                    catch(IOException e){
+                        e.printStackTrace();
+                    }
+
+                }else{
+                    Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
+                }
+                dialogWarning.dismiss();
+                fam.close(true);
             }
+        });
 
-            File file = new File(path,"keys.txt");
-            String Message = "";
-
-            try{
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(Message.getBytes());
-                fileOutputStream.close();
-                key.setText("");
-                Toast.makeText(getApplicationContext(),"Keys deleted",Toast.LENGTH_LONG).show();
+        //Dialog popup (CANCEL)
+        mCancel.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                fam.close(true);
+                dialogWarning.dismiss();
             }
-
-            catch(FileNotFoundException e){
-                e.printStackTrace();
-            }
-
-            catch(IOException e){
-                e.printStackTrace();
-            }
-
-        }else{
-            Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
-        }
-        fam.close(true);
+        });
     }
 
     public void addKey(View view){
@@ -602,14 +646,24 @@ public class MainActivity extends AppCompatActivity {
                 datum.put("name", mName.getText().toString());
                 datum.put("key", key.getText().toString());
                 data.add(datum);
-                SimpleAdapter adapter = new SimpleAdapter(MainActivity.this, data, android.R.layout.simple_list_item_2, new String[] {"name", "key"}, new int[] {android.R.id.text1,
-                        android.R.id.text2});
+                adapter = new SimpleAdapter(
+                        MainActivity.this,
+                        data,
+                        android.R.layout.simple_list_item_2,
+                        new String[] {
+                                "name",
+                                "key"
+                        },
+                        new int[] {
+                                android.R.id.text1,
+                                android.R.id.text2
+                        }
+                );
                 list.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
 
-
-                fam.close(true);
                 dialog.dismiss();
+                fam.close(true);
             }
         });
 
@@ -659,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
                 stringBuffer.append(Message + "\n");
             }
             //Add the datum to ListView
-            SimpleAdapter adapter = new SimpleAdapter(
+            adapter = new SimpleAdapter(
                     MainActivity.this,
                     data,
                     android.R.layout.simple_list_item_2,
@@ -685,5 +739,17 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         fam.close(true);
+        for(int i=0; i<data.size(); i++){
+            System.out.println(data.get(i).toString());
+        }
+    }
+    public void getArray (View view){
+        if(!data.isEmpty ()){
+            for(int i=0; i<data.size(); i++){
+                Log.d("MainActivity", data.get(i).get("name").toString()+", "+data.get(i).get("key").toString());
+            }
+        }else{
+            Log.d("MainActivity", "The array is null");
+        }
     }
 }
