@@ -550,24 +550,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view){
                 if(!data.isEmpty ()){
-                    for(int i=0; i<data.size(); i++){
-                        Map<String, String> map = data.get(i);
-                        data.remove(map);
-                    }
-                    adapter = new SimpleAdapter(
-                            MainActivity.this,
-                            data,
-                            android.R.layout.simple_list_item_2,
-                            new String[] {
-                                    "name",
-                                    "key"
-                            },
-                            new int[] {
-                                    android.R.id.text1,
-                                    android.R.id.text2
-                            }
-                    );
-                    list.setAdapter(adapter);
+                    data.clear();
                     adapter.notifyDataSetChanged();
                 }
 
@@ -641,6 +624,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view){
                 if(mName.getText().toString().isEmpty()){
                     Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
+                    return;
                 }
                 Map<String, String> datum = new HashMap<String, String>(2);
                 datum.put("name", mName.getText().toString());
