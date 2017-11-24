@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Vigenère Cipher</string>
-    <string name="radioText">Alphabet</string>
-    <string name="simpleText">Simple</string>
+    <string name="customText">Custom</string>
     <string name="standardText">Standard</string>
     <string name="asciiText">ASCII</string>
     <string name="messageText">Message</string>
@@ -11,13 +10,14 @@
     <string name="keyGenText">Key Gen</string>
     <string name="dialogTitle">Key Name</string>
     <string name="dialogHint">Please enter a name for the key</string>
-    <string name="marginTop">20dp</string>
-    <string name="marginBottom">16dp</string>
-    <string name="marginLeft">20dp</string>
-    <string name="marginRight">20dp</string>
-    <string name="marginGap">16dp</string>
     <string name="warningTitle">Warning!</string>
     <string name="warningHint">This action is irreversible and  will erase your all your keys. Are you sure you want to clear the data?</string>
     <string name="overwriteHint">This action is irreversible and will overwrite your existing keys. Are you sure you want to save the data?</string>
+    <string name="menu_title">Settings</string>
+    <string name="aboutText">About</string>
+    <string name="clearText">Clear Data</string>
+    <string name="secretTitle">Renew Secret Key</string>
+    <string name="debugText">Debug</string>
+
 
 </resources>

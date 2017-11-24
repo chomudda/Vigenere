@@ -19,17 +19,6 @@
         android:orientation="horizontal">
 
         <RadioButton
-            android:id="@+id/simple"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:gravity="center"
-            android:background="@drawable/btn_style"
-            android:button="@android:color/transparent"
-            android:text="@string/simpleText"
-            android:onClick="onRadioButtonClicked"/>
-
-        <RadioButton
             android:id="@+id/standard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -49,6 +38,17 @@
             android:background="@drawable/btn_style"
             android:button="@android:color/transparent"
             android:text="@string/asciiText"
+            android:onClick="onRadioButtonClicked"/>
+
+        <RadioButton
+            android:id="@+id/custom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:gravity="center"
+            android:background="@drawable/btn_style"
+            android:button="@android:color/transparent"
+            android:text="@string/customText"
             android:onClick="onRadioButtonClicked"/>
     </RadioGroup>
 
@@ -141,17 +141,6 @@
         android:divider="@null"
         android:dividerHeight="0dp"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="getArray"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:clickable="true" />
-
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/menu"
         android:layout_width="match_parent"
@@ -198,21 +187,7 @@
         fab:menu_fab_hide_animation="@anim/fab_scale_down">
 
         <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/clear_data"
-            android:onClick="clearData"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_delete_white_24dp"
-            fab:fab_colorNormal="@color/colorPrimary"
-            fab:fab_colorPressed="@color/colorPrimaryDark"
-            fab:fab_colorRipple="@color/colorPrimaryDark"
-            fab:fab_size="mini"
-            fab:fab_label="Clear Data" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/load_key"
+            android:id="@+id/loadKey"
             android:onClick="loadKey"
             android:clickable="true"
             android:focusable="true"
@@ -226,21 +201,6 @@
             fab:fab_label="Load from file" />
 
         <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/add_key"
-            android:onClick="addKey"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_list_white_24dp"
-            fab:fab_colorNormal="@color/colorPrimary"
-            fab:fab_colorPressed="@color/colorPrimaryDark"
-            fab:fab_colorRipple="@color/colorPrimaryDark"
-            fab:fab_size="mini"
-            fab:fab_label="Add to list" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/save_key"
             android:onClick="fab"
             android:clickable="true"
             android:focusable="true"
@@ -252,6 +212,19 @@
             fab:fab_colorRipple="@color/colorPrimaryDark"
             fab:fab_size="mini"
             fab:fab_label="Save to file" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:onClick="addKey"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_list_white_24dp"
+            fab:fab_colorNormal="@color/colorPrimary"
+            fab:fab_colorPressed="@color/colorPrimaryDark"
+            fab:fab_colorRipple="@color/colorPrimaryDark"
+            fab:fab_size="mini"
+            fab:fab_label="Add to list" />
 
     </com.github.clans.fab.FloatingActionMenu>
 

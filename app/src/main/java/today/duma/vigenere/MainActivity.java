@@ -18,6 +18,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
@@ -57,9 +60,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static android.util.Log.d;
-import static today.duma.vigenere.R.drawable.ic_add_black_24dp;
-import static today.duma.vigenere.R.drawable.ic_add_white_24dp;
-import static today.duma.vigenere.R.drawable.ic_delete_black_24dp;
 import static today.duma.vigenere.R.drawable.ic_delete_white_24dp;
 
 public class MainActivity extends AppCompatActivity {
@@ -92,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
     public EditText key;
     public RadioGroup radioGroup;
     public SwipeMenuListView list;
-    List<Map<String, String>> data;
+    public List<Map<String, String>> data;
+    public FloatingActionMenu fam;
 
     //Global arrays
     public ArrayList config = new ArrayList();
@@ -104,20 +105,36 @@ public class MainActivity extends AppCompatActivity {
     public  ArrayList key_array = new ArrayList();
     public Random rand = new Random();
     public String SecretKey;
-    SimpleAdapter adapter;
+    public SimpleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         verifyStoragePermissions(this);
 
+        fam = (FloatingActionMenu) findViewById(R.id.menu);
         message = (EditText)findViewById(R.id.message);
         key = (EditText)findViewById(R.id.key);
         radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         list = (SwipeMenuListView) findViewById(R.id.list);
         data = new ArrayList<Map<String, String>>();
+
+        adapter = new SimpleAdapter(
+                MainActivity.this,
+                data,
+                android.R.layout.simple_list_item_2,
+                new String[] {
+                        "name",
+                        "key"
+                },
+                new int[] {
+                        android.R.id.text1,
+                        android.R.id.text2
+                }
+        );
+
+        fam.setClosedOnTouchOutside(true);
 
         //Add to clipboard on long press
         final ClipData[] myClip = new ClipData[1];
@@ -145,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onScroll(AbsListView absListView, int i, int i1, int i2) {
-                final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+                //final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
                 if(i == 0) {
                     fam.showMenuButton(true);
                 }
@@ -190,19 +207,6 @@ public class MainActivity extends AppCompatActivity {
                 // false : close the menu; true : not close the menu
                 Map<String, String> map = data.get(position);
                 data.remove(map);
-                adapter = new SimpleAdapter(
-                        MainActivity.this,
-                        data,
-                        android.R.layout.simple_list_item_2,
-                        new String[] {
-                                "name",
-                                "key"
-                        },
-                        new int[] {
-                                android.R.id.text1,
-                                android.R.id.text2
-                        }
-                );
                 list.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
 
@@ -276,6 +280,100 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Toast.makeText(getApplicationContext(),"Write access denied",Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case R.id.Menu1:
+                break;
+            case R.id.clear_data:
+                final String state;
+                state = Environment.getExternalStorageState();
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+                final View mView = getLayoutInflater().inflate(R.layout.dialog_warning, null);
+                Button mOk = (Button) mView.findViewById(R.id.warning_ok);
+                Button mCancel = (Button) mView.findViewById(R.id.warning_cancel);
+
+                mBuilder.setView(mView);
+                final AlertDialog dialogWarning = mBuilder.create();
+                dialogWarning.show();
+
+                mOk.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view){
+                        if(!data.isEmpty ()){
+                            data.clear();
+                            adapter.notifyDataSetChanged();
+                        }
+
+                        if(Environment.MEDIA_MOUNTED.equals(state)){
+                            File root = Environment.getExternalStorageDirectory();
+                            File path = new File(root.getAbsolutePath()+"/vigenere");
+
+                            if(!path.exists()){
+                                path.mkdir();
+                            }
+
+                            File file = new File(path,"keys.txt");
+                            String Message = "";
+
+                            try{
+                                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                                fileOutputStream.write(Message.getBytes());
+                                fileOutputStream.close();
+                                key.setText("");
+                                Toast.makeText(getApplicationContext(),"Keys deleted",Toast.LENGTH_LONG).show();
+                            }
+
+                            catch(FileNotFoundException e){
+                                e.printStackTrace();
+                            }
+
+                            catch(IOException e){
+                                e.printStackTrace();
+                            }
+
+                        }else{
+                            Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
+                        }
+                        dialogWarning.dismiss();
+                    }
+                });
+
+                //Dialog popup (CANCEL)
+                mCancel.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view){
+                        dialogWarning.dismiss();
+                    }
+                });
+                break;
+            case R.id.secret_key:
+                break;
+            case R.id.about:
+                break;
+            case R.id.debug:
+                if(!data.isEmpty ()){
+                    for(int i=0; i<data.size(); i++){
+                        Log.d("MainActivity", data.get(i).get("name").toString()+", "+data.get(i).get("key").toString());
+                    }
+                }else{
+                    Log.d("MainActivity", "The array is null");
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     //ENCRYPT
@@ -407,7 +505,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Check which radio button was clicked
         switch(view.getId()) {
-            case R.id.simple:
+            case R.id.custom:
                 if (checked)
                     //Toast.makeText(getApplicationContext(), "Simple", Toast.LENGTH_SHORT).show();
                     config.clear();
@@ -428,6 +526,58 @@ public class MainActivity extends AppCompatActivity {
                 config.addAll(Arrays.asList(' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'));
                 //System.out.println(config);
                 break;
+        }
+    }
+
+    public void loadKey (View view){
+        //final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+        File root = Environment.getExternalStorageDirectory();
+        File path = new File(root.getAbsolutePath()+"/vigenere");
+        File file = new File(path,"keys.txt");
+        data.clear();
+
+
+        String Message;
+
+        try{
+            FileInputStream fileInputStream = new FileInputStream(file);
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            StringBuffer stringBuffer = new StringBuffer();
+
+            //String buffer loop to get lines in file
+            while((Message=bufferedReader.readLine())!=null){
+                Pattern namePattern = Pattern.compile("\\{(.*?)\\}");
+                Matcher nameMatch = namePattern.matcher(Message);
+                Pattern keyPattern = Pattern.compile("\\[\\%(.*?)\\%\\]");
+                Matcher keyMatch = keyPattern.matcher(Message);
+
+                //RegEx for key names and key
+                while(nameMatch.find() && keyMatch.find()){
+                    Map<String, String> datum = new HashMap<String, String>(2);
+                    datum.put("name", nameMatch.group(1));
+                    datum.put("key", keyMatch.group(1));
+                    data.add(datum);
+                    //System.out.println("Name: " + nameMatch.group(1));
+                    //System.out.println("Key: " + keyMatch.group(1));
+                }
+                stringBuffer.append(Message + "\n");
+            }
+            list.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(),"Keys loaded",Toast.LENGTH_LONG).show();
+        }
+
+        catch(FileNotFoundException e){
+            e.printStackTrace();
+        }
+
+        catch(IOException e){
+            e.printStackTrace();
+        }
+        fam.close(true);
+        for(int i=0; i<data.size(); i++){
+            System.out.println(data.get(i).toString());
         }
     }
 
@@ -462,7 +612,7 @@ public class MainActivity extends AppCompatActivity {
     public void fab (View view){
         final String state;
         state = Environment.getExternalStorageState();
-        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+        //final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
         final View mView = getLayoutInflater().inflate(R.layout.dialog_overwrite, null);
@@ -532,75 +682,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void clearData (View view){
-        final String state;
-        state = Environment.getExternalStorageState();
-        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
-
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        final View mView = getLayoutInflater().inflate(R.layout.dialog_warning, null);
-        Button mOk = (Button) mView.findViewById(R.id.warning_ok);
-        Button mCancel = (Button) mView.findViewById(R.id.warning_cancel);
-
-        mBuilder.setView(mView);
-        final AlertDialog dialogWarning = mBuilder.create();
-        dialogWarning.show();
-
-        mOk.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                if(!data.isEmpty ()){
-                    data.clear();
-                    adapter.notifyDataSetChanged();
-                }
-
-                if(Environment.MEDIA_MOUNTED.equals(state)){
-                    File root = Environment.getExternalStorageDirectory();
-                    File path = new File(root.getAbsolutePath()+"/vigenere");
-
-                    if(!path.exists()){
-                        path.mkdir();
-                    }
-
-                    File file = new File(path,"keys.txt");
-                    String Message = "";
-
-                    try{
-                        FileOutputStream fileOutputStream = new FileOutputStream(file);
-                        fileOutputStream.write(Message.getBytes());
-                        fileOutputStream.close();
-                        key.setText("");
-                        Toast.makeText(getApplicationContext(),"Keys deleted",Toast.LENGTH_LONG).show();
-                    }
-
-                    catch(FileNotFoundException e){
-                        e.printStackTrace();
-                    }
-
-                    catch(IOException e){
-                        e.printStackTrace();
-                    }
-
-                }else{
-                    Toast.makeText(getApplicationContext(),"Path not found",Toast.LENGTH_LONG).show();
-                }
-                dialogWarning.dismiss();
-                fam.close(true);
-            }
-        });
-
-        //Dialog popup (CANCEL)
-        mCancel.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                fam.close(true);
-                dialogWarning.dismiss();
-            }
-        });
-    }
-
     public void addKey(View view){
-        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
+        //final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
 
         if(key.getText().toString().matches("")){
             fam.close(true);
@@ -626,25 +709,19 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"Please enter a name",Toast.LENGTH_LONG).show();
                     return;
                 }
+
                 Map<String, String> datum = new HashMap<String, String>(2);
                 datum.put("name", mName.getText().toString());
                 datum.put("key", key.getText().toString());
                 data.add(datum);
-                adapter = new SimpleAdapter(
-                        MainActivity.this,
-                        data,
-                        android.R.layout.simple_list_item_2,
-                        new String[] {
-                                "name",
-                                "key"
-                        },
-                        new int[] {
-                                android.R.id.text1,
-                                android.R.id.text2
-                        }
-                );
                 list.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
+
+                //Hide the soft keyboard
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
 
                 dialog.dismiss();
                 fam.close(true);
@@ -660,80 +737,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    public void loadKey (View view){
-        final FloatingActionMenu fam = (FloatingActionMenu) findViewById(R.id.menu);
-        File root = Environment.getExternalStorageDirectory();
-        File path = new File(root.getAbsolutePath()+"/vigenere");
-        File file = new File(path,"keys.txt");
-        data.clear();
-
-
-        String Message;
-
-        try{
-            FileInputStream fileInputStream = new FileInputStream(file);
-            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuffer stringBuffer = new StringBuffer();
-
-            //String buffer loop to get lines in file
-            while((Message=bufferedReader.readLine())!=null){
-                Pattern namePattern = Pattern.compile("\\{(.*?)\\}");
-                Matcher nameMatch = namePattern.matcher(Message);
-                Pattern keyPattern = Pattern.compile("\\[\\%(.*?)\\%\\]");
-                Matcher keyMatch = keyPattern.matcher(Message);
-
-                //RegEx for key names and key
-                while(nameMatch.find() && keyMatch.find()){
-                    Map<String, String> datum = new HashMap<String, String>(2);
-                    datum.put("name", nameMatch.group(1));
-                    datum.put("key", keyMatch.group(1));
-                    data.add(datum);
-                    //System.out.println("Name: " + nameMatch.group(1));
-                    //System.out.println("Key: " + keyMatch.group(1));
-                }
-                stringBuffer.append(Message + "\n");
-            }
-            //Add the datum to ListView
-            adapter = new SimpleAdapter(
-                    MainActivity.this,
-                    data,
-                    android.R.layout.simple_list_item_2,
-                    new String[] {
-                            "name",
-                            "key"
-                    },
-                    new int[] {
-                            android.R.id.text1,
-                            android.R.id.text2
-                    }
-            );
-            list.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-            Toast.makeText(getApplicationContext(),"Keys loaded",Toast.LENGTH_LONG).show();
-        }
-
-        catch(FileNotFoundException e){
-            e.printStackTrace();
-        }
-
-        catch(IOException e){
-            e.printStackTrace();
-        }
-        fam.close(true);
-        for(int i=0; i<data.size(); i++){
-            System.out.println(data.get(i).toString());
-        }
-    }
-    public void getArray (View view){
-        if(!data.isEmpty ()){
-            for(int i=0; i<data.size(); i++){
-                Log.d("MainActivity", data.get(i).get("name").toString()+", "+data.get(i).get("key").toString());
-            }
-        }else{
-            Log.d("MainActivity", "The array is null");
-        }
     }
 }
